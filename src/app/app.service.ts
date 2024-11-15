@@ -2,6 +2,7 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 import * as playwright from 'playwright';
 import * as random_useragent from 'random-useragent';
 import { setTimeout as wait } from 'node:timers/promises';
+import { CheerioAPI, load } from 'cheerio';
 
 import { BASE_URL } from 'src/core/consts/tuturu-consts';
 import { createSearchString } from 'src/core/helpers/createSearchString';
@@ -111,9 +112,12 @@ export class AppService {
     const cardCount = Number(
       (await countSpan.innerText()).split(String.fromCharCode(160))[0],
     );
-    // ВЗЯЛ КОЛИЧЕСТВО ВСЕХ КАРТОЧЕК
+    // ВЗЯЛ КОЛИЧЕСТВО ВСЕХ
+    let cardsCount = 0;
     while (true) {
-      const cards = await page.$$('[data-ti=offer-card]');
+      const allCards = await page.$$('[data-ti=offer-card]');
+      cardCount + allCards.length - cardCount;
+      const lastTwentyCards = allCards.slice(-20);
 
       await page.screenshot({ path: './screenshots/beforeScroll.png' });
       // await lastCard.scrollIntoViewIfNeeded({ timeout: 1000 });
@@ -122,4 +126,28 @@ export class AppService {
       await page.screenshot({ path: './screenshots/afterScroll.png' });
     }
   };
+
+  public testCheerio() {
+    const cheerio = load(
+      '<h2 class="title">Hello world</h2><h2 class="title">Hello world</h2>',
+      null,
+      false,
+    );
+
+    console.log(cheerio.html());
+    const test = this.dropAllAttributes(cheerio);
+    console.log(test);
+    console.log(cheerio.html());
+  }
+
+  private dropAllAttributes($: CheerioAPI) {
+    $('*').each(function () {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      const attributes = this.attribs;
+      for (const attr in attributes) {
+        $(this).removeAttr(attr);
+      }
+    });
+  }
 }
